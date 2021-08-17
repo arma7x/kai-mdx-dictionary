@@ -292,7 +292,9 @@ window.addEventListener("load", function() {
         })
       },
       renderSoftKey: function() {
-        console.log(this.data.mdxs.length);
+        const current = this.$router.stack[this.$router.stack.length - 1];
+        if (current.name !== 'home')
+          return
         if (this.data.mdxs.length > 0)
           this.$router.setSoftKeyText('Menu', 'OPEN', 'Kill App');
         else
@@ -332,6 +334,7 @@ window.addEventListener("load", function() {
                         this.$router.hideBottomSheet();
                         setTimeout(() => {
                           SEARCH_INPUT.blur();
+                          this.methods.renderSoftKey();
                         }, 100);
                       }
                       break
@@ -340,12 +343,14 @@ window.addEventListener("load", function() {
                       setTimeout(() => {
                         SEARCH_INPUT.blur();
                         this.methods.search(SEARCH_INPUT.value);
+                        this.methods.renderSoftKey();
                       }, 100);
                       break
                     case 'SoftLeft':
                       this.$router.hideBottomSheet();
                       setTimeout(() => {
                         SEARCH_INPUT.blur();
+                        this.methods.renderSoftKey();
                       }, 100);
                       break
                   }
@@ -364,7 +369,9 @@ window.addEventListener("load", function() {
             }
             this.$router.showBottomSheet(searchDialog);
           }
-        }, null);
+        }, () => {
+          setTimeout(this.methods.renderSoftKey, 100);
+        });
       },
       center: function() {
         var selected = this.data.mdxs[this.verticalNavIndex];

@@ -7,9 +7,8 @@
   "theme_color": "#873eff",
   "background_color": "#873eff",
   "categories": [
-    "games"
+    "education"
   ],
-  "orientation": ["portrait", "portrait-primary"],
   "icons": {
     "56": "/icons/icon56x56.png",
     "112": "/icons/icon112x112.png"
