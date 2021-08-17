@@ -1,0 +1,37 @@
+{
+  "version": "1.1.0",
+  "name": "MDX Dictionary",
+  "description": "MDX Dictionary allows you to open MDict dictionary(mdx only) files, and you can easily search the dictionary in the app",
+  "launch_path": "/index.html",
+  "theme": "#873eff",
+  "theme_color": "#873eff",
+  "background_color": "#873eff",
+  "categories": [
+    "games"
+  ],
+  "orientation": ["portrait", "portrait-primary"],
+  "icons": {
+    "56": "/icons/icon56x56.png",
+    "112": "/icons/icon112x112.png"
+  },
+  "developer": {
+    "name": "arma7x",
+    "url": "https://github.com/arma7x"
+  },
+  "origin": "app://mdict.arma7x.com",
+  "type": "privileged",
+  "permissions": {
+    "device-storage:sdcard":{
+      "access": "readwrite",
+      "description": "Pick MDX from storage"
+    }
+  },
+  "locales": {
+    "en-US": {
+      "name": "MDX Dictionary",
+      "subtitle": "MDX Dictionary allows you to open MDict dictionary(mdx only) files, and you can easily search the dictionary in the app",
+      "description": "MDX Dictionary allows you to open MDict dictionary(mdx only) files, and you can easily search the dictionary in the app"
+    }
+  },
+  "default_locale": "en-US"
+}
