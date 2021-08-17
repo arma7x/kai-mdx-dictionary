@@ -1,4 +1,10 @@
 <div class="kui-flex-wrap">
+  {{#empty}}
+    <div style="text-align:center;white-space:pre-wrap!important;word-break:break-word!important;font-weight:bold;height:100%;display:flex;flex-direction:column;justify-content:center;">
+      <div>Please press 'Search' to look-up words</div>
+    </div>
+  {{/empty}}
+  {{^empty}}
   <ul class="kui-list kai-container">
     {{#result}}
     <li class="searchNav">
@@ -8,4 +14,5 @@
     </li>
     {{/result}}
   </ul>
+  {{/empty}}
 </div>

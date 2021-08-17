@@ -33,10 +33,14 @@ window.addEventListener("load", function() {
         template: `<div  id="__viewDefinition__" class="kui-flex-wrap kai-padding-5" style="font-size:100%"><style>${style}</style>${definition}</div>`,
         mounted: function() {
           this.$router.setHeaderTitle(name);
+          const firstP = document.querySelector('p');
+          if (firstP.innerHTML.indexOf('entry') > -1) {
+            firstP.innerHTML = '';
+          }
         },
         unmounted: function() {},
         methods: {},
-        softKeyText: { left: '-', center: 'RESET', right: '+' },
+        softKeyText: { left: '-', center: 'SELECT', right: '+' },
         softKeyListener: {
           left: function() {
             var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
@@ -48,8 +52,7 @@ window.addEventListener("load", function() {
             $router.showToast(`${current}%`);
           },
           center: function() {
-            document.getElementById('__viewDefinition__').style.fontSize = `100%`
-            $router.showToast(`100%`);
+            
           },
           right: function() {
             var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
@@ -77,6 +80,7 @@ window.addEventListener("load", function() {
             name: 'search',
             data: {
               title: 'search',
+              empty: true,
               result: [],
               keyword: '',
             },
@@ -92,7 +96,7 @@ window.addEventListener("load", function() {
                 this.data.keyword = keyword;
                 if (keyword == '' || keyword.length === 0) {
                   this.verticalNavIndex = -1;
-                  this.setData({ result: [] });
+                  this.setData({ result: [], empty: true });
                   this.methods.renderSoftKey();
                   return
                 }
@@ -102,7 +106,7 @@ window.addEventListener("load", function() {
                     return {word: v.toString(), value: v.offset};
                   });
                   this.verticalNavIndex = -1;
-                  this.setData({ result: list });
+                  this.setData({ result: list, empty: !(list.length > 0) });
                   this.methods.renderSoftKey();
                 });
               },
@@ -171,12 +175,16 @@ window.addEventListener("load", function() {
               center: function() {
                 var selected = this.data.result[this.verticalNavIndex];
                 if (selected) {
+                  $router.showLoading();
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
                       content = DOMPurify.sanitize(content)
                     }
                     viewDefinition($router, selected.word, content, style);
+                  })
+                  .finally(() => {
+                    $router.hideLoading();
                   })
                 }
               },
@@ -270,9 +278,12 @@ window.addEventListener("load", function() {
         });
       },
       openMdx: function(DS, path, style) {
+        this.$router.showLoading();
         DS.getFile(path, (mdxBlob) => {
+          this.$router.hideLoading();
           loadMDX(this.$router, mdxBlob, style);
         }, (err) => {
+          this.$router.hideLoading();
           this.$router.showToast(err.toString());
         })
       }
@@ -417,7 +428,39 @@ window.addEventListener("load", function() {
     console.log(e);
   }
 
-  function displayKaiAds() {}
+  function displayKaiAds() {
+    var display = true;
+    if (window['kaiadstimer'] == null) {
+      window['kaiadstimer'] = new Date();
+    } else {
+      var now = new Date();
+      if ((now - window['kaiadstimer']) < 300000) {
+        display = false;
+      } else {
+        window['kaiadstimer'] = now;
+      }
+    }
+    console.log('Display Ads:', display);
+    if (!display)
+      return;
+    getKaiAd({
+      publisher: 'ac3140f7-08d6-46d9-aa6f-d861720fba66',
+      app: 'mdict',
+      slot: 'kaios',
+      onerror: err => console.error(err),
+      onready: ad => {
+        ad.call('display')
+        ad.on('close', () => {
+          app.$router.hideBottomSheet();
+          document.body.style.position = '';
+        });
+        ad.on('display', () => {
+          app.$router.hideBottomSheet();
+          document.body.style.position = '';
+        });
+      }
+    })
+  }
 
   displayKaiAds();
 
