@@ -224,6 +224,7 @@ window.addEventListener("load", function() {
           }, 30000);
         } else {
           this.setData({mdxs: mdxs});
+          this.methods.renderSoftKey();
         }
       });
     },
@@ -245,6 +246,7 @@ window.addEventListener("load", function() {
         }
       },
       runFilter: function(fileRegistry) {
+        this.verticalNavIndex = -1;
         var mdxs = []
         fileRegistry.forEach((file) => {
           var n = file.split('/');
@@ -258,6 +260,7 @@ window.addEventListener("load", function() {
         });
         mdxs.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
         this.setData({mdxs: mdxs});
+        this.methods.renderSoftKey();
         localforage.setItem('DB_MDXS', mdxs);
       },
       search: function(keyword) {
@@ -275,6 +278,7 @@ window.addEventListener("load", function() {
           });
           result.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
           this.setData({mdxs: result});
+          this.methods.renderSoftKey();
         });
       },
       openMdx: function(DS, path, style) {
@@ -286,9 +290,16 @@ window.addEventListener("load", function() {
           this.$router.hideLoading();
           this.$router.showToast(err.toString());
         })
+      },
+      renderSoftKey: function() {
+        console.log(this.data.mdxs.length);
+        if (this.data.mdxs.length > 0)
+          this.$router.setSoftKeyText('Menu', 'OPEN', 'Kill App');
+        else
+          this.$router.setSoftKeyText('Menu', '', 'Kill App');
       }
     },
-    softKeyText: { left: 'Menu', center: 'OPEN', right: 'Kill App' },
+    softKeyText: { left: 'Menu', center: '', right: 'Kill App' },
     softKeyListener: {
       left: function() {
         var menu = [
