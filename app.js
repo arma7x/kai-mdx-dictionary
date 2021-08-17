@@ -23,34 +23,49 @@ window.addEventListener("load", function() {
     }
   });
 
-  const viewDefinition = function($router, name, definition) {
+  const viewDefinition = function($router, name, definition, style) {
     $router.push(
       new Kai({
         name: 'viewDefinition',
         data: {
           title: 'viewDefinition'
         },
-        template: `
-        <div class="kui-flex-wrap kai-padding-5">
-          <style>#__kai_router__{height:264px!important;}.kui-router-m-bottom{margin-bottom:0px!important;}.kui-software-key{height:0px;}</style>
-          ${definition}
-        </div>`,
+        template: `<div  id="__viewDefinition__" class="kui-flex-wrap kai-padding-5" style="font-size:100%"><style>${style}</style>${definition}</div>`,
         mounted: function() {
           this.$router.setHeaderTitle(name);
         },
         unmounted: function() {},
         methods: {},
-        softKeyText: { left: '', center: '', right: '' },
+        softKeyText: { left: '-', center: 'RESET', right: '+' },
         softKeyListener: {
-          left: function() {},
-          center: function() {},
-          right: function() {}
+          left: function() {
+            var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
+            current -= 10;
+            if (current < 60)
+              return
+            else
+              document.getElementById('__viewDefinition__').style.fontSize = `${current}%`
+            $router.showToast(`${current}%`);
+          },
+          center: function() {
+            document.getElementById('__viewDefinition__').style.fontSize = `100%`
+            $router.showToast(`100%`);
+          },
+          right: function() {
+            var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
+            current += 10;
+            if (current > 180)
+              return
+            else
+              document.getElementById('__viewDefinition__').style.fontSize = `${current}%`
+            $router.showToast(`${current}%`);
+          }
         }
       })
     );
   }
 
-  const loadMDX = function($router, file) {
+  const loadMDX = function($router, file, style) {
     const paths = file.name.split('/');
     const n = paths[paths.length - 1];
     require(['mdict-common', 'mdict-parser', 'mdict-renderer'], function(MCommon, MParser, MRenderer) {
@@ -76,6 +91,7 @@ window.addEventListener("load", function() {
               search: function(keyword) {
                 this.data.keyword = keyword;
                 if (keyword == '' || keyword.length === 0) {
+                  this.verticalNavIndex = -1;
                   this.setData({ result: [] });
                   this.methods.renderSoftKey();
                   return
@@ -85,6 +101,7 @@ window.addEventListener("load", function() {
                   list = list.map((v) => {
                     return {word: v.toString(), value: v.offset};
                   });
+                  this.verticalNavIndex = -1;
                   this.setData({ result: list });
                   this.methods.renderSoftKey();
                 });
@@ -159,7 +176,7 @@ window.addEventListener("load", function() {
                     if (DOMPurify) {
                       content = DOMPurify.sanitize(content)
                     }
-                    viewDefinition($router, selected.word, content);
+                    viewDefinition($router, selected.word, content, style);
                   })
                 }
               },
@@ -243,14 +260,21 @@ window.addEventListener("load", function() {
             mdxs = [];
           }
           var result = [];
-          mdxs.forEach((rom) => {
-            if (keyword === '' || (rom.name.toLowerCase().indexOf(keyword.toLowerCase()) > -1)) {
-              result.push(rom);
+          mdxs.forEach((mdx) => {
+            if (keyword === '' || (mdx.name.toLowerCase().indexOf(keyword.toLowerCase()) > -1)) {
+              result.push(mdx);
             }
           });
           result.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0))
           this.setData({mdxs: result});
         });
+      },
+      openMdx: function(DS, path, style) {
+        DS.getFile(path, (mdxBlob) => {
+          loadMDX(this.$router, mdxBlob, style);
+        }, (err) => {
+          this.$router.showToast(err.toString());
+        })
       }
     },
     softKeyText: { left: 'Menu', center: 'OPEN', right: 'Kill App' },
@@ -321,18 +345,25 @@ window.addEventListener("load", function() {
         }, null);
       },
       center: function() {
-        var rom = this.data.mdxs[this.verticalNavIndex];
-        if (rom) {
+        var selected = this.data.mdxs[this.verticalNavIndex];
+        if (selected) {
           var DS;
           if (window['__DS__'])
             DS = window['__DS__'];
           else
             DS = new DataStorage();
-          DS.getFile(rom.path, (success) => {
-            loadMDX(this.$router, success);
+          DS.getFile(selected.path.replace(new RegExp('.mdx$'), '.css'), (styleBlob) => {
+            var reader = new FileReader();
+            reader.readAsText(styleBlob);
+            reader.onload = () => {
+              this.methods.openMdx(DS, selected.path, reader.result);
+            }
+            reader.onerror = () => {
+              this.methods.openMdx(DS, selected.path, '');
+            }
           }, (err) => {
-            this.$router.showToast(err.toString());
-          })
+            this.methods.openMdx(DS, selected.path, '');
+          });
         }
       },
       right: function() {
