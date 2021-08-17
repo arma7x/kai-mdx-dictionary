@@ -40,7 +40,7 @@ window.addEventListener("load", function() {
         },
         unmounted: function() {},
         methods: {},
-        softKeyText: { left: '-', center: 'SELECT', right: '+' },
+        softKeyText: { left: '-', center: '', right: '+' }, //SELECT
         softKeyListener: {
           left: function() {
             var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
