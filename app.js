@@ -78,6 +78,7 @@ window.addEventListener("load", function() {
     const names = paths[paths.length - 1].split('.');
     const name = names[0];
     require(['mdict-common', 'mdict-parser', 'mdict-renderer'], function(MCommon, MParser, MRenderer) {
+      $router.showLoading();
       MParser([file])
       .then((resources) => {
         var mdict = MRenderer(resources);
@@ -206,6 +207,9 @@ window.addEventListener("load", function() {
             }
           })
         );
+      })
+      .finally(() => {
+        $router.hideLoading();
       });
     });
   }
@@ -387,16 +391,20 @@ window.addEventListener("load", function() {
             DS = window['__DS__'];
           else
             DS = new DataStorage();
+          this.$router.showLoading();
           DS.getFile(selected.path.replace(new RegExp('.mdx$'), '.css'), (styleBlob) => {
             var reader = new FileReader();
             reader.readAsText(styleBlob);
             reader.onload = () => {
+              this.$router.hideLoading();
               this.methods.openMdx(DS, selected.path, reader.result);
             }
             reader.onerror = () => {
+              this.$router.hideLoading();
               this.methods.openMdx(DS, selected.path, '');
             }
           }, (err) => {
+            this.$router.hideLoading();
             this.methods.openMdx(DS, selected.path, '');
           });
         }
