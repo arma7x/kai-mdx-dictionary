@@ -30,15 +30,20 @@ window.addEventListener("load", function() {
         data: {
           title: 'viewDefinition'
         },
-        template: `<div  id="__viewDefinition__" class="kui-flex-wrap kai-padding-5" style="font-size:100%"><style>${style}</style>${definition}</div>`,
+        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%"><style>${style}</style><span class="kai-padding-5">${definition}</span></div>`,
         mounted: function() {
+          document.getElementById('app').requestFullscreen();
+          document.getElementById('app').style.backgroundColor = '#fff';
           this.$router.setHeaderTitle(name);
           const firstP = document.querySelector('p');
           if (firstP.innerHTML.indexOf('entry') > -1) {
             firstP.innerHTML = '';
           }
         },
-        unmounted: function() {},
+        unmounted: function() {
+          document.getElementById('app').style.backgroundColor = '';
+          document.exitFullscreen();
+        },
         methods: {},
         softKeyText: { left: '-', center: '', right: '+' }, //SELECT
         softKeyListener: {
@@ -70,7 +75,8 @@ window.addEventListener("load", function() {
 
   const loadMDX = function($router, file, style) {
     const paths = file.name.split('/');
-    const n = paths[paths.length - 1];
+    const names = paths[paths.length - 1].split('.');
+    const name = names[0];
     require(['mdict-common', 'mdict-parser', 'mdict-renderer'], function(MCommon, MParser, MRenderer) {
       MParser([file])
       .then((resources) => {
@@ -87,7 +93,7 @@ window.addEventListener("load", function() {
             verticalNavClass: '.searchNav',
             templateUrl: document.location.origin + '/templates/search.html',
             mounted: function() {
-              $router.setHeaderTitle(n);
+              $router.setHeaderTitle(name);
               this.methods.renderSoftKey();
             },
             unmounted: function() {},
@@ -181,7 +187,7 @@ window.addEventListener("load", function() {
                     if (DOMPurify) {
                       content = DOMPurify.sanitize(content)
                     }
-                    viewDefinition($router, selected.word, content, style);
+                    viewDefinition($router, name, content, style);
                   })
                   .finally(() => {
                     $router.hideLoading();
