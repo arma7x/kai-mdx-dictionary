@@ -39,6 +39,16 @@ window.addEventListener("load", function() {
           if (firstP.innerHTML.indexOf('entry') > -1) {
             firstP.innerHTML = '';
           }
+          const imgs = document.getElementById('__viewDefinition__').querySelectorAll('img');
+          const regSrc = new RegExp(/(data:image\/[^;]+;base64[^"]+)/);
+          for (var img in imgs) {
+            const current = imgs[img];
+            if (current.src && !regSrc.test(current.src)) {
+              current.style.visibility = 'hidden';
+              current.style.width = '0px';
+              current.style.height = '0px';
+            }
+          }
         },
         unmounted: function() {
           document.getElementById('app').style.backgroundColor = '';
@@ -79,6 +89,7 @@ window.addEventListener("load", function() {
     const name = names[0];
     require(['mdict-common', 'mdict-parser', 'mdict-renderer'], function(MCommon, MParser, MRenderer) {
       $router.showLoading();
+      const timer = setTimeout(window.close, 10000);
       MParser([file])
       .then((resources) => {
         var mdict = MRenderer(resources);
@@ -209,6 +220,7 @@ window.addEventListener("load", function() {
         );
       })
       .finally(() => {
+        clearTimeout(timer);
         $router.hideLoading();
       });
     });
@@ -293,12 +305,15 @@ window.addEventListener("load", function() {
       },
       openMdx: function(DS, path, style) {
         this.$router.showLoading();
+        const timer = setTimeout(window.close, 10000);
         DS.getFile(path, (mdxBlob) => {
           this.$router.hideLoading();
           loadMDX(this.$router, mdxBlob, style);
+          clearTimeout(timer);
         }, (err) => {
           this.$router.hideLoading();
           this.$router.showToast(err.toString());
+          clearTimeout(timer);
         })
       },
       renderSoftKey: function() {
@@ -392,18 +407,22 @@ window.addEventListener("load", function() {
           else
             DS = new DataStorage();
           this.$router.showLoading();
+          const timer = setTimeout(window.close, 10000);
           DS.getFile(selected.path.replace(new RegExp('.mdx$'), '.css'), (styleBlob) => {
             var reader = new FileReader();
             reader.readAsText(styleBlob);
             reader.onload = () => {
+              clearTimeout(timer);
               this.$router.hideLoading();
               this.methods.openMdx(DS, selected.path, reader.result);
             }
             reader.onerror = () => {
+              clearTimeout(timer);
               this.$router.hideLoading();
               this.methods.openMdx(DS, selected.path, '');
             }
           }, (err) => {
+            clearTimeout(timer);
             this.$router.hideLoading();
             this.methods.openMdx(DS, selected.path, '');
           });
