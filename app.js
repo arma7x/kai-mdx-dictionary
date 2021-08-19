@@ -198,6 +198,7 @@ window.addEventListener("load", function() {
                       menu.push({'text': words[x]});
                   }
                 }
+                menu.push({'text': ANCHORS[_anchorIndex].innerText.trim()});
                 $router.showOptionMenu('GOTO', menu, 'SELECT', (selected) => {
                   setTimeout(() => {
                     this.methods.viewDefinition(selected.text);
