@@ -35,15 +35,16 @@ window.addEventListener("load", function() {
     }
   });
 
-  const viewDefinition = function($router, name, definition, style) {
+  const viewDefinition = function($router, name, definition, style, mdict) {
     var ANCHORS = [];
     var PARENT;
+    var _anchorIndex = -1
     $router.push(
       new Kai({
         name: 'viewDefinition',
         data: {
           title: 'viewDefinition',
-          anchorIndex: -1,
+          
         },
         template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%">
           <style scoped>${style}</style>
@@ -71,6 +72,7 @@ window.addEventListener("load", function() {
               current.style.height = '0px';
             }
           }
+          ANCHORS = []
           var done = false, idx = 0;
           PARENT = window.getComputedStyle(document.getElementById('__kai_router__'));
           const _anchors = VD.querySelectorAll('a')
@@ -81,13 +83,13 @@ window.addEventListener("load", function() {
                 if (isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
                   _anchors[x].classList.add('focus');
                   done = true;
-                  this.data.anchorIndex = idx;
+                  _anchorIndex = idx;
                 }
               }
               idx++;
             }
           }
-          this.methods.renderCenterText();
+          this.methods.getVisibleAnchor();
         },
         unmounted: function() {
           if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
@@ -103,11 +105,11 @@ window.addEventListener("load", function() {
             return false;
           },
           getVisibleAnchor: function() {
-            const val = this.data.anchorIndex === -1 ? -1 : 1;
-            if (((this.data.anchorIndex === -1) || (this.data.anchorIndex === ANCHORS.length)) && !this.methods.isAnchorInViewPort(this.data.anchorIndex - val)) {
+            const val = _anchorIndex === -1 ? -1 : 1;
+            if (((_anchorIndex === -1) || (_anchorIndex === ANCHORS.length)) && !this.methods.isAnchorInViewPort(_anchorIndex - val)) {
               for (var x in ANCHORS) {
                 if (this.methods.isAnchorInViewPort(x)) {
-                  this.data.anchorIndex = parseInt(x);
+                  _anchorIndex = parseInt(x);
                   break;
                 }
               }
@@ -115,16 +117,32 @@ window.addEventListener("load", function() {
             this.methods.renderCenterText();
           },
           renderCenterText: function() {
-            if (ANCHORS[this.data.anchorIndex]) {
-              const words = ANCHORS[this.data.anchorIndex].innerText.split(' ');
-              if (words.length > 0) {
-                this.$router.setSoftKeyCenterText("GOTO");
-              } else {
+            if (ANCHORS[_anchorIndex]) {
+              const words = ANCHORS[_anchorIndex].innerText.trim().split(" ");
+              if (words.length > 1) {
                 this.$router.setSoftKeyCenterText("SELECT");
+              } else {
+                this.$router.setSoftKeyCenterText("GOTO");
               }
             } else {
               this.$router.setSoftKeyCenterText("");
             }
+          },
+          viewDefinition: function(word) {
+            $router.showLoading();
+            mdict.lookup(word)
+            .then((content) => {
+              if (DOMPurify) {
+                content = DOMPurify.sanitize(content)
+              }
+              viewDefinition($router, name, content, style, mdict);
+            })
+            .catch((err = 'Error') => {
+              $router.showToast(err.toString());
+            })
+            .finally(() => {
+              $router.hideLoading();
+            })
           }
         },
         softKeyText: { left: '-', center: '', right: '+' }, //SELECT
@@ -139,7 +157,27 @@ window.addEventListener("load", function() {
             $router.showToast(`${current}%`);
           },
           center: function() {
-            
+            if (ANCHORS[_anchorIndex]) {
+              const words = ANCHORS[_anchorIndex].innerText.trim().split(" ");
+              if (words.length > 1) {
+                var menu = [];
+                for (var x in words) {
+                  if (words[x].trim) {
+                    if (words[x].trim().length > 0)
+                      menu.push({'text': words[x]});
+                  }
+                }
+                $router.showOptionMenu('GOTO', menu, 'SELECT', (selected) => {
+                  setTimeout(() => {
+                    this.methods.viewDefinition(selected.text);
+                  });
+                }, (selected) => {
+                  this.methods.renderCenterText();
+                });
+              } else {
+                this.methods.viewDefinition(words[0]);
+              }
+            }
           },
           right: function() {
             var current = parseInt(document.getElementById('__viewDefinition__').style.fontSize);
@@ -156,25 +194,25 @@ window.addEventListener("load", function() {
             const DOM = document.getElementById(this.id);
             DOM.scrollTop -= 20;
             this.scrollThreshold = DOM.scrollTop;
-            if (ANCHORS[this.data.anchorIndex]) {
-              ANCHORS[this.data.anchorIndex].classList.remove('focus');
-              while (!this.methods.isAnchorInViewPort(this.data.anchorIndex))  {
-                this.data.anchorIndex -= 1;
-                if (ANCHORS[this.data.anchorIndex] == null)
+            if (ANCHORS[_anchorIndex]) {
+              ANCHORS[_anchorIndex].classList.remove('focus');
+              while (!this.methods.isAnchorInViewPort(_anchorIndex))  {
+                _anchorIndex -= 1;
+                if (ANCHORS[_anchorIndex] == null)
                   break
               }
             }
-            if (ANCHORS[this.data.anchorIndex])
-              ANCHORS[this.data.anchorIndex].classList.add('focus');
+            if (ANCHORS[_anchorIndex])
+              ANCHORS[_anchorIndex].classList.add('focus');
             this.methods.getVisibleAnchor();
           },
           arrowRight: function() {
-            if (ANCHORS[this.data.anchorIndex + 1] == null)
+            if (ANCHORS[_anchorIndex + 1] == null)
               return
-            if (this.methods.isAnchorInViewPort(this.data.anchorIndex + 1)) {
-              ANCHORS[this.data.anchorIndex].classList.remove('focus');
-              ANCHORS[this.data.anchorIndex + 1].classList.add('focus');
-              this.data.anchorIndex += 1;
+            if (this.methods.isAnchorInViewPort(_anchorIndex + 1)) {
+              ANCHORS[_anchorIndex].classList.remove('focus');
+              ANCHORS[_anchorIndex + 1].classList.add('focus');
+              _anchorIndex += 1;
             }
             this.methods.renderCenterText();
           },
@@ -182,25 +220,25 @@ window.addEventListener("load", function() {
             const DOM = document.getElementById(this.id);
             DOM.scrollTop += 20;
             this.scrollThreshold = DOM.scrollTop;
-            if (ANCHORS[this.data.anchorIndex]) {
-              ANCHORS[this.data.anchorIndex].classList.remove('focus');
-              while (!this.methods.isAnchorInViewPort(this.data.anchorIndex))  {
-                this.data.anchorIndex += 1;
-                if (ANCHORS[this.data.anchorIndex] == null)
+            if (ANCHORS[_anchorIndex]) {
+              ANCHORS[_anchorIndex].classList.remove('focus');
+              while (!this.methods.isAnchorInViewPort(_anchorIndex))  {
+                _anchorIndex += 1;
+                if (ANCHORS[_anchorIndex] == null)
                   break
               }
             }
-            if (ANCHORS[this.data.anchorIndex])
-              ANCHORS[this.data.anchorIndex].classList.add('focus');
+            if (ANCHORS[_anchorIndex])
+              ANCHORS[_anchorIndex].classList.add('focus');
             this.methods.getVisibleAnchor();
           },
           arrowLeft: function() {
-            if (ANCHORS[this.data.anchorIndex - 1] == null)
+            if (ANCHORS[_anchorIndex - 1] == null)
               return
-            if (this.methods.isAnchorInViewPort(this.data.anchorIndex - 1)) {
-              ANCHORS[this.data.anchorIndex].classList.remove('focus');
-              ANCHORS[this.data.anchorIndex - 1].classList.add('focus');
-              this.data.anchorIndex -= 1;
+            if (this.methods.isAnchorInViewPort(_anchorIndex - 1)) {
+              ANCHORS[_anchorIndex].classList.remove('focus');
+              ANCHORS[_anchorIndex - 1].classList.add('focus');
+              _anchorIndex -= 1;
             }
             this.methods.renderCenterText();
           },
@@ -323,9 +361,9 @@ window.addEventListener("load", function() {
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
-                      content = DOMPurify.sanitize(content)
+                      // content = DOMPurify.sanitize(content) //todo
                     }
-                    viewDefinition($router, name, content, style);
+                    viewDefinition($router, name, content, style, mdict);
                   })
                   .finally(() => {
                     $router.hideLoading();
