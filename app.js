@@ -47,7 +47,7 @@ window.addEventListener("load", function() {
         },
         template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%">
           <style scoped>${style}</style>
-          <style scoped>a.focus{color:white!important;background-color:black!important;padding:0px 2px;border-radius:3px;}</style>
+          <style scoped>a.focus{color:white!important;background-color:#320374!important;padding:0px 2px;border-radius:3px;}</style>
           <span class="kai-padding-5">${definition}</span>
         </div>`,
         mounted: function() {
@@ -87,6 +87,7 @@ window.addEventListener("load", function() {
               idx++;
             }
           }
+          this.methods.renderCenterText();
         },
         unmounted: function() {
           if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
@@ -100,6 +101,30 @@ window.addEventListener("load", function() {
               return true;
             }
             return false;
+          },
+          getVisibleAnchor: function() {
+            const val = this.data.anchorIndex === -1 ? -1 : 1;
+            if (((this.data.anchorIndex === -1) || (this.data.anchorIndex === ANCHORS.length)) && !this.methods.isAnchorInViewPort(this.data.anchorIndex - val)) {
+              for (var x in ANCHORS) {
+                if (this.methods.isAnchorInViewPort(x)) {
+                  this.data.anchorIndex = parseInt(x);
+                  break;
+                }
+              }
+            }
+            this.methods.renderCenterText();
+          },
+          renderCenterText: function() {
+            if (ANCHORS[this.data.anchorIndex]) {
+              const words = ANCHORS[this.data.anchorIndex].innerText.split(' ');
+              if (words.length > 0) {
+                this.$router.setSoftKeyCenterText("GOTO");
+              } else {
+                this.$router.setSoftKeyCenterText("SELECT");
+              }
+            } else {
+              this.$router.setSoftKeyCenterText("");
+            }
           }
         },
         softKeyText: { left: '-', center: '', right: '+' }, //SELECT
@@ -131,6 +156,17 @@ window.addEventListener("load", function() {
             const DOM = document.getElementById(this.id);
             DOM.scrollTop -= 20;
             this.scrollThreshold = DOM.scrollTop;
+            if (ANCHORS[this.data.anchorIndex]) {
+              ANCHORS[this.data.anchorIndex].classList.remove('focus');
+              while (!this.methods.isAnchorInViewPort(this.data.anchorIndex))  {
+                this.data.anchorIndex -= 1;
+                if (ANCHORS[this.data.anchorIndex] == null)
+                  break
+              }
+            }
+            if (ANCHORS[this.data.anchorIndex])
+              ANCHORS[this.data.anchorIndex].classList.add('focus');
+            this.methods.getVisibleAnchor();
           },
           arrowRight: function() {
             if (ANCHORS[this.data.anchorIndex + 1] == null)
@@ -140,6 +176,7 @@ window.addEventListener("load", function() {
               ANCHORS[this.data.anchorIndex + 1].classList.add('focus');
               this.data.anchorIndex += 1;
             }
+            this.methods.renderCenterText();
           },
           arrowDown: function() {
             const DOM = document.getElementById(this.id);
@@ -155,15 +192,7 @@ window.addEventListener("load", function() {
             }
             if (ANCHORS[this.data.anchorIndex])
               ANCHORS[this.data.anchorIndex].classList.add('focus');
-            if (this.data.anchorIndex === ANCHORS.length && !this.methods.isAnchorInViewPort(this.data.anchorIndex - 1)) {
-              for (var x in ANCHORS) {
-                if (this.methods.isAnchorInViewPort(x)) {
-                  this.data.anchorIndex = parseInt(x);
-                  break;
-                }
-              }
-              console.log(this.data.anchorIndex);
-            }
+            this.methods.getVisibleAnchor();
           },
           arrowLeft: function() {
             if (ANCHORS[this.data.anchorIndex - 1] == null)
@@ -173,6 +202,7 @@ window.addEventListener("load", function() {
               ANCHORS[this.data.anchorIndex - 1].classList.add('focus');
               this.data.anchorIndex -= 1;
             }
+            this.methods.renderCenterText();
           },
         }
       })
