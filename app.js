@@ -72,7 +72,8 @@ window.addEventListener("load", function() {
               current.style.height = '0px';
             }
           }
-          ANCHORS = []
+          const len = ANCHORS.length;
+          ANCHORS = [];
           var done = false, idx = 0;
           PARENT = window.getComputedStyle(document.getElementById('__kai_router__'));
           const _anchors = VD.querySelectorAll('a')
@@ -80,7 +81,7 @@ window.addEventListener("load", function() {
             if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null) {
               ANCHORS.push(_anchors[x]);
               if (!done) {
-                if (isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
+                if (len === 0 && isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
                   _anchors[x].classList.add('focus');
                   done = true;
                   _anchorIndex = idx;
