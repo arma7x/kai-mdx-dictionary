@@ -361,7 +361,7 @@ window.addEventListener("load", function() {
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
-                      // content = DOMPurify.sanitize(content) //todo
+                      content = DOMPurify.sanitize(content) //todo
                     }
                     viewDefinition($router, name, content, style, mdict);
                   })
