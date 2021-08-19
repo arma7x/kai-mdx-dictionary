@@ -90,6 +90,7 @@ window.addEventListener("load", function() {
               idx++;
             }
           }
+          ANCHORS[_anchorIndex].classList.add('focus');
           this.methods.getVisibleAnchor();
         },
         unmounted: function() {
