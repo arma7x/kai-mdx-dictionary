@@ -94,10 +94,6 @@ window.addEventListener("load", function() {
           this.methods.getVisibleAnchor();
         },
         unmounted: function() {
-          if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
-            document.getElementById('app').style.backgroundColor = '';
-            document.exitFullscreen();
-          }
         },
         methods: {
           isAnchorInViewPort: function(index) {
@@ -273,6 +269,10 @@ window.addEventListener("load", function() {
             mounted: function() {
               $router.setHeaderTitle(name);
               this.methods.renderSoftKey();
+              if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
+                document.getElementById('app').style.backgroundColor = '';
+                document.exitFullscreen();
+              }
             },
             unmounted: function() {},
             methods: {
