@@ -114,13 +114,16 @@ window.addEventListener("load", function() {
               idx++;
             }
           }
-          ANCHORS[_anchorIndex].classList.add('focus');
+          if (ANCHORS[_anchorIndex])
+            ANCHORS[_anchorIndex].classList.add('focus');
           this.methods.getVisibleAnchor();
         },
         unmounted: function() {
         },
         methods: {
           isAnchorInViewPort: function(index) {
+            if (ANCHORS[index] == null)
+              return
             if (isElementInViewport(ANCHORS[index], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
               return true;
             }
@@ -135,6 +138,12 @@ window.addEventListener("load", function() {
                   break;
                 }
               }
+            } else if (this.methods.isAnchorInViewPort(_anchorIndex - val)) {
+              if (ANCHORS[_anchorIndex]) {
+                ANCHORS[_anchorIndex].classList.remove('focus');
+              }
+              ANCHORS[_anchorIndex - val].classList.add('focus');
+              _anchorIndex = _anchorIndex - val;
             }
             this.methods.renderCenterText();
           },
@@ -390,7 +399,7 @@ window.addEventListener("load", function() {
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
-                      content = DOMPurify.sanitize(content) //todo
+                      // content = DOMPurify.sanitize(content) //todo
                     }
                     viewDefinition($router, name, content, style, mdict);
                   })
