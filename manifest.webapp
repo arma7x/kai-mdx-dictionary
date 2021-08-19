@@ -23,8 +23,16 @@
     "device-storage:sdcard":{
       "access": "readwrite",
       "description": "Pick MDX from storage"
+    },
+    "desktop-notification": {
+      "description": "Required for displaying alerts when app is on background"
     }
   },
+  "messages": [
+    {
+      "serviceworker-notification": "/index.html"
+    }
+  ],
   "locales": {
     "en-US": {
       "name": "MDX Dictionary",

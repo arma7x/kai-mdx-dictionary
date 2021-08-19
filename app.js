@@ -1,3 +1,25 @@
+const pushLocalNotification = function(text) {
+  window.Notification.requestPermission().then(function(result) {
+    var notification = new window.Notification(text);
+      notification.onclick = function(event) {
+        if (window.navigator.mozApps) {
+          var request = window.navigator.mozApps.getSelf();
+          request.onsuccess = function() {
+            if (request.result) {
+              notification.close();
+              request.result.launch();
+            }
+          };
+        } else {
+          window.open(document.location.origin, '_blank');
+        }
+      }
+      notification.onshow = function() {
+        notification.close();
+      }
+  });
+}
+
 window.addEventListener("load", function() {
 
   localforage.setDriver(localforage.LOCALSTORAGE);
@@ -251,7 +273,10 @@ window.addEventListener("load", function() {
     const name = names[0];
     require(['mdict-common', 'mdict-parser', 'mdict-renderer'], function(MCommon, MParser, MRenderer) {
       $router.showLoading();
-      const timer = setTimeout(window.close, 10000);
+      const timer = setTimeout(() => {
+        pushLocalNotification('Please reopen the app');
+        window.close();
+      }, 5000);
       MParser([file])
       .then((resources) => {
         var mdict = MRenderer(resources);
@@ -471,7 +496,10 @@ window.addEventListener("load", function() {
       },
       openMdx: function(DS, path, style) {
         this.$router.showLoading();
-        const timer = setTimeout(window.close, 10000);
+        const timer = setTimeout(() => {
+          pushLocalNotification('Please reopen the app');
+          window.close();
+        }, 5000);
         DS.getFile(path, (mdxBlob) => {
           this.$router.hideLoading();
           loadMDX(this.$router, mdxBlob, style);
@@ -573,7 +601,10 @@ window.addEventListener("load", function() {
           else
             DS = new DataStorage();
           this.$router.showLoading();
-          const timer = setTimeout(window.close, 10000);
+          const timer = setTimeout(() => {
+            pushLocalNotification('Please reopen the app');
+            window.close();
+          }, 5000);
           DS.getFile(selected.path.replace(new RegExp('.mdx$'), '.css'), (styleBlob) => {
             var reader = new FileReader();
             reader.readAsText(styleBlob);
