@@ -2,6 +2,18 @@ window.addEventListener("load", function() {
 
   localforage.setDriver(localforage.LOCALSTORAGE);
 
+  function isElementInViewport(el, marginTop = 0, marginBottom = 0) {
+    if (!el.getBoundingClientRect)
+      return
+    var rect = el.getBoundingClientRect();
+    return (
+        rect.top >= 0 + marginTop &&
+        rect.left >= 0 &&
+        rect.bottom <= ((window.innerHeight || document.documentElement.clientHeight) - marginBottom) && /* or $(window).height() */
+        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
+    );
+  }
+
   const state = new KaiState({});
 
   const helpSupportPage = new Kai({
@@ -24,22 +36,32 @@ window.addEventListener("load", function() {
   });
 
   const viewDefinition = function($router, name, definition, style) {
+    var ANCHORS = [];
+    var PARENT;
     $router.push(
       new Kai({
         name: 'viewDefinition',
         data: {
-          title: 'viewDefinition'
+          title: 'viewDefinition',
+          anchorIndex: -1,
         },
-        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%"><style>${style}</style><span class="kai-padding-5">${definition}</span></div>`,
+        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%">
+          <style scoped>${style}</style>
+          <style scoped>a.focus{color:white!important;background-color:black!important;padding:0px 2px;border-radius:3px;}</style>
+          <span class="kai-padding-5">${definition}</span>
+        </div>`,
         mounted: function() {
-          document.getElementById('app').requestFullscreen();
-          document.getElementById('app').style.backgroundColor = '#fff';
+          if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
+            document.getElementById('app').requestFullscreen();
+            document.getElementById('app').style.backgroundColor = '#fff';
+          }
           this.$router.setHeaderTitle(name);
           const firstP = document.querySelector('p');
           if (firstP.innerHTML.indexOf('entry') > -1) {
             firstP.innerHTML = '';
           }
-          const imgs = document.getElementById('__viewDefinition__').querySelectorAll('img');
+          const VD = document.getElementById('__viewDefinition__');
+          const imgs = VD.querySelectorAll('img');
           const regSrc = new RegExp(/(data:image\/[^;]+;base64[^"]+)/);
           for (var img in imgs) {
             const current = imgs[img];
@@ -49,12 +71,37 @@ window.addEventListener("load", function() {
               current.style.height = '0px';
             }
           }
+          var done = false, idx = 0;
+          PARENT = window.getComputedStyle(document.getElementById('__kai_router__'));
+          const _anchors = VD.querySelectorAll('a')
+          for (var x in _anchors) {
+            if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null) {
+              ANCHORS.push(_anchors[x]);
+              if (!done) {
+                if (isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
+                  _anchors[x].classList.add('focus');
+                  done = true;
+                  this.data.anchorIndex = idx;
+                }
+              }
+              idx++;
+            }
+          }
         },
         unmounted: function() {
-          document.getElementById('app').style.backgroundColor = '';
-          document.exitFullscreen();
+          if (navigator.userAgent !== 'Mozilla/5.0 (Mobile; rv:48.0) Gecko/48.0 Firefox/48.0') {
+            document.getElementById('app').style.backgroundColor = '';
+            document.exitFullscreen();
+          }
         },
-        methods: {},
+        methods: {
+          isAnchorInViewPort: function(index) {
+            if (isElementInViewport(ANCHORS[index], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
+              return true;
+            }
+            return false;
+          }
+        },
         softKeyText: { left: '-', center: '', right: '+' }, //SELECT
         softKeyListener: {
           left: function() {
@@ -78,6 +125,55 @@ window.addEventListener("load", function() {
               document.getElementById('__viewDefinition__').style.fontSize = `${current}%`
             $router.showToast(`${current}%`);
           }
+        },
+        dPadNavListener: {
+          arrowUp: function() {
+            const DOM = document.getElementById(this.id);
+            DOM.scrollTop -= 20;
+            this.scrollThreshold = DOM.scrollTop;
+          },
+          arrowRight: function() {
+            if (ANCHORS[this.data.anchorIndex + 1] == null)
+              return
+            if (this.methods.isAnchorInViewPort(this.data.anchorIndex + 1)) {
+              ANCHORS[this.data.anchorIndex].classList.remove('focus');
+              ANCHORS[this.data.anchorIndex + 1].classList.add('focus');
+              this.data.anchorIndex += 1;
+            }
+          },
+          arrowDown: function() {
+            const DOM = document.getElementById(this.id);
+            DOM.scrollTop += 20;
+            this.scrollThreshold = DOM.scrollTop;
+            if (ANCHORS[this.data.anchorIndex]) {
+              ANCHORS[this.data.anchorIndex].classList.remove('focus');
+              while (!this.methods.isAnchorInViewPort(this.data.anchorIndex))  {
+                this.data.anchorIndex += 1;
+                if (ANCHORS[this.data.anchorIndex] == null)
+                  break
+              }
+            }
+            if (ANCHORS[this.data.anchorIndex])
+              ANCHORS[this.data.anchorIndex].classList.add('focus');
+            if (this.data.anchorIndex === ANCHORS.length && !this.methods.isAnchorInViewPort(this.data.anchorIndex - 1)) {
+              for (var x in ANCHORS) {
+                if (this.methods.isAnchorInViewPort(x)) {
+                  this.data.anchorIndex = parseInt(x);
+                  break;
+                }
+              }
+              console.log(this.data.anchorIndex);
+            }
+          },
+          arrowLeft: function() {
+            if (ANCHORS[this.data.anchorIndex - 1] == null)
+              return
+            if (this.methods.isAnchorInViewPort(this.data.anchorIndex - 1)) {
+              ANCHORS[this.data.anchorIndex].classList.remove('focus');
+              ANCHORS[this.data.anchorIndex - 1].classList.add('focus');
+              this.data.anchorIndex -= 1;
+            }
+          },
         }
       })
     );
