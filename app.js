@@ -1,3 +1,5 @@
+const APP_VERSION = "1.1.0";
+
 const pushLocalNotification = function(text) {
   window.Notification.requestPermission().then(function(result) {
     var notification = new window.Notification(text);
@@ -426,18 +428,26 @@ window.addEventListener("load", function() {
     verticalNavClass: '.mdxsNav',
     templateUrl: document.location.origin + '/templates/home.html',
     mounted: function() {
-      navigator.spatialNavigationEnabled = false;
       this.$router.setHeaderTitle('Load MDX');
-      localforage.getItem('DB_MDXS')
-      .then((mdxs) => {
-        if (!mdxs) {
-          window['__DS__'] = new DataStorage(this.methods.onChange, this.methods.onReady);
-          setTimeout(() => {
-            this.$router.showToast('Please `Kill App` if you think the app was hang');
-          }, 30000);
+      localforage.getItem('APP_VERSION')
+      .then((v) => {
+        if (v == null || v != APP_VERSION) {
+          this.$router.showToast(`Add shortcut key for navigation`);
+          this.$router.push('helpSupportPage');
+          localforage.setItem('APP_VERSION', APP_VERSION)
         } else {
-          this.setData({mdxs: mdxs});
-          this.methods.renderSoftKey();
+          localforage.getItem('DB_MDXS')
+          .then((mdxs) => {
+            if (!mdxs) {
+              window['__DS__'] = new DataStorage(this.methods.onChange, this.methods.onReady);
+              setTimeout(() => {
+                this.$router.showToast('Please `Kill App` if you think the app was hang');
+              }, 30000);
+            } else {
+              this.setData({mdxs: mdxs});
+              this.methods.renderSoftKey();
+            }
+          });
         }
       });
     },
