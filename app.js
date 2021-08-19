@@ -22,6 +22,16 @@ const pushLocalNotification = function(text) {
   });
 }
 
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(str, newStr){
+    if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {
+      return this.replace(str, newStr);
+    }
+    return this.replace(new RegExp(str, 'g'), newStr);
+
+  };
+}
+
 window.addEventListener("load", function() {
 
   localforage.setDriver(localforage.LOCALSTORAGE);
@@ -59,10 +69,11 @@ window.addEventListener("load", function() {
     }
   });
 
-  const viewDefinition = function($router, name, definition, style, mdict) {
+  const viewDefinition = function($router, mdict, phrase, name, definition, style) {
     var ANCHORS = [];
     var PARENT;
     var _anchorIndex = -1
+    style = style.replaceAll('none;', 'block;');
     $router.push(
       new Kai({
         name: 'viewDefinition',
@@ -166,7 +177,7 @@ window.addEventListener("load", function() {
               if (DOMPurify) {
                 content = DOMPurify.sanitize(content)
               }
-              viewDefinition($router, name, content, style, mdict);
+              viewDefinition($router, mdict, word, name, content, style);
             })
             .catch((err = 'Error') => {
               $router.showToast(err.toString());
@@ -190,6 +201,7 @@ window.addEventListener("load", function() {
           center: function() {
             if (ANCHORS[_anchorIndex]) {
               const words = ANCHORS[_anchorIndex].innerText.trim().split(" ");
+              console.log(ANCHORS[_anchorIndex].href); // TODO
               if (words.length > 1) {
                 var menu = [];
                 for (var x in words) {
@@ -400,9 +412,9 @@ window.addEventListener("load", function() {
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
-                      // content = DOMPurify.sanitize(content) //todo
+                      content = DOMPurify.sanitize(content, {FORBID_TAGS: ['style', 'link', 'script']});
                     }
-                    viewDefinition($router, name, content, style, mdict);
+                    viewDefinition($router, mdict, selected.word, name, content, style);
                   })
                   .finally(() => {
                     $router.hideLoading();
