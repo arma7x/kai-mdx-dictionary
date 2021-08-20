@@ -69,7 +69,7 @@ window.addEventListener("load", function() {
     }
   });
 
-  const viewDefinition = function($router, mdict, phrase, name, definition, style) {
+  const viewDefinition = function($router, mdict, phrase, name, definition, style, hash = null) {
     var ANCHORS = [];
     var PARENT;
     var _anchorIndex = -1
@@ -81,9 +81,9 @@ window.addEventListener("load", function() {
           title: 'viewDefinition',
           
         },
-        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%">
+        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%;">
           <style scoped>${style}</style>
-          <style scoped>a.focus{color:white!important;background-color:#320374!important;padding:0px 2px;border-radius:3px;}</style>
+          <style scoped>a.focus{color:white!important;box-sizing:border-box;color:#002B80!important;background-color:#ECF2FE!important;padding:0px;border:0.1px solid #002B80;border-radius:3px;font-size:calc(100% - 0.2px)!important;height:calc(100% - 0.2px)!important;}</style>
           <span class="kai-padding-5">${definition}</span>
         </div>`,
         mounted: function() {
@@ -113,7 +113,7 @@ window.addEventListener("load", function() {
           PARENT = window.getComputedStyle(document.getElementById('__kai_router__'));
           const _anchors = VD.querySelectorAll('a')
           for (var x in _anchors) {
-            if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null) {
+            if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null && _anchors[x].innerText != "" && _anchors[x].innerText != null) {
               ANCHORS.push(_anchors[x]);
               if (!done) {
                 if (len === 0 && isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
@@ -204,13 +204,13 @@ window.addEventListener("load", function() {
               console.log(ANCHORS[_anchorIndex].href); // TODO
               if (words.length > 1) {
                 var menu = [];
+                menu.push({'text': ANCHORS[_anchorIndex].innerText.trim()});
                 for (var x in words) {
                   if (words[x].trim) {
                     if (words[x].trim().length > 0)
                       menu.push({'text': words[x]});
                   }
                 }
-                menu.push({'text': ANCHORS[_anchorIndex].innerText.trim()});
                 $router.showOptionMenu('GOTO', menu, 'SELECT', (selected) => {
                   setTimeout(() => {
                     this.methods.viewDefinition(selected.text);
