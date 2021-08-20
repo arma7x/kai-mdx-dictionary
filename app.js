@@ -83,7 +83,7 @@ window.addEventListener("load", function() {
         },
         template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%;">
           <style scoped>${style}</style>
-          <style scoped>a.focus{color:white!important;box-sizing:border-box;color:#002B80!important;background-color:#ECF2FE!important;padding:0px;border:0.1px solid #002B80;border-radius:3px;font-size:calc(100% - 0.2px)!important;height:calc(100% - 0.2px)!important;}</style>
+          <style scoped>a{box-sizing:border-box!important;padding:2px}a.focus{color:white!important;box-sizing:border-box!important;color:#002B80!important;background-color:#ECF2FE!important;padding:1px;border:0.1px solid #002B80;border-radius:3px;}</style>
           <span class="kai-padding-5">${definition}</span>
         </div>`,
         mounted: function() {
