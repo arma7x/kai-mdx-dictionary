@@ -134,7 +134,7 @@ window.addEventListener("load", function() {
         methods: {
           isAnchorInViewPort: function(index) {
             if (ANCHORS[index] == null)
-              return
+              return false;
             if (isElementInViewport(ANCHORS[index], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
               return true;
             }
@@ -149,7 +149,7 @@ window.addEventListener("load", function() {
                   break;
                 }
               }
-            } else if (this.methods.isAnchorInViewPort(_anchorIndex - val)) {
+            } else if (this.methods.isAnchorInViewPort(_anchorIndex - val) && !this.methods.isAnchorInViewPort(_anchorIndex)) {
               if (ANCHORS[_anchorIndex]) {
                 ANCHORS[_anchorIndex].classList.remove('focus');
               }
