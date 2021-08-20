@@ -74,16 +74,16 @@ window.addEventListener("load", function() {
     var PARENT;
     var _anchorIndex = -1
     style = style.replaceAll('none;', 'block;');
+    definition = definition.replaceAll('none;', 'block;');
     $router.push(
       new Kai({
         name: 'viewDefinition',
         data: {
           title: 'viewDefinition',
-          
         },
         template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%;">
           <style scoped>${style}</style>
-          <style scoped>a{box-sizing:border-box!important;padding:2px}a.focus{color:white!important;box-sizing:border-box!important;color:#002B80!important;background-color:#ECF2FE!important;padding:1px;border:0.1px solid #002B80;border-radius:3px;}</style>
+          <style scoped>a{text-decoration:none!important;box-sizing:border-box!important;padding:0px 2px}a.focus{color:white!important;box-sizing:border-box!important;color:#002B80!important;background-color:rgba(129,169,248,0.34)!important;padding:0px 1px;border:0.1px solid #002B80;border-radius:3px;}</style>
           <span class="kai-padding-5">${definition}</span>
         </div>`,
         mounted: function() {
@@ -175,7 +175,7 @@ window.addEventListener("load", function() {
             mdict.lookup(word)
             .then((content) => {
               if (DOMPurify) {
-                content = DOMPurify.sanitize(content)
+                content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
               }
               viewDefinition($router, mdict, word, name, content, style);
             })
@@ -201,10 +201,19 @@ window.addEventListener("load", function() {
           center: function() {
             if (ANCHORS[_anchorIndex]) {
               const words = ANCHORS[_anchorIndex].innerText.trim().split(" ");
-              console.log(ANCHORS[_anchorIndex].href); // TODO
               if (words.length > 1) {
                 var menu = [];
-                menu.push({'text': ANCHORS[_anchorIndex].innerText.trim()});
+                if (ANCHORS[_anchorIndex].href) {
+                  const _url = new URL(ANCHORS[_anchorIndex].href);
+                  var orig = _url.pathname.replace('//', '');
+                  orig = orig.replaceAll('-', ' ');
+                  menu.push({'text': orig});
+                }
+                if (menu[0]) {
+                  if (menu[0].text.toLowerCase() !== ANCHORS[_anchorIndex].innerText.trim().toLowerCase()) {
+                    menu.push({'text': ANCHORS[_anchorIndex].innerText.trim()});
+                  }
+                }
                 for (var x in words) {
                   if (words[x].trim) {
                     if (words[x].trim().length > 0)
@@ -412,7 +421,7 @@ window.addEventListener("load", function() {
                   mdict.lookup(selected.word)
                   .then((content) => {
                     if (DOMPurify) {
-                      content = DOMPurify.sanitize(content, {FORBID_TAGS: ['style', 'link', 'script']});
+                      content = content.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
                     }
                     viewDefinition($router, mdict, selected.word, name, content, style);
                   })
@@ -743,6 +752,21 @@ window.addEventListener("load", function() {
   }
 
   displayKaiAds();
+
+  var EXIT_STACK = 0;
+  document.addEventListener('keydown', (evt) => {
+    if (evt.key === 'Call') {
+      if (window['exittimer'])
+        clearTimeout(window['exittimer']);
+      EXIT_STACK += 1;
+      if (EXIT_STACK === 3)
+        window.close();
+      window['exittimer'] = setTimeout(() => {
+        EXIT_STACK = 0;
+        window['exittimer'] = null;
+      }, 300);
+    }
+  });
 
   document.addEventListener('visibilitychange', function(ev) {
     if (document.visibilityState === 'visible') {
