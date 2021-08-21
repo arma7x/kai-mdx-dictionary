@@ -113,7 +113,7 @@ window.addEventListener("load", function() {
           PARENT = window.getComputedStyle(document.getElementById('__kai_router__'));
           const _anchors = VD.querySelectorAll('a')
           for (var x in _anchors) {
-            if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null && _anchors[x].innerText != "" && _anchors[x].innerText != null) {
+            if (_anchors[x].innerHTML !== "" && _anchors[x].innerHTML != null && _anchors[x].innerText.trim() != "" && _anchors[x].innerText != null) {
               ANCHORS.push(_anchors[x]);
               if (!done) {
                 if (len === 0 && isElementInViewport(_anchors[x], parseFloat(PARENT.marginTop), parseFloat(PARENT.marginBottom))) {
