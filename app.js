@@ -72,7 +72,7 @@ window.addEventListener("load", function() {
   const viewDefinition = function($router, mdict, phrase, name, definition, style, hash = null) {
     var ANCHORS = [];
     var PARENT;
-    var _anchorIndex = -1
+    var _anchorIndex = -1;
     style = style.replaceAll('none;', 'block;');
     definition = definition.replaceAll('none;', 'block;');
     $router.push(
@@ -81,7 +81,7 @@ window.addEventListener("load", function() {
         data: {
           title: 'viewDefinition',
         },
-        template: `<div  id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%;">
+        template: `<div id="__viewDefinition__" class="kui-flex-wrap" style="font-size:100%;">
           <style scoped>${style}</style>
           <style scoped>a{text-decoration:none!important;box-sizing:border-box!important;padding:0px 2px}a.focus{color:white!important;box-sizing:border-box!important;color:#002B80!important;background-color:rgba(129,169,248,0.34)!important;padding:0px 1px;border:0.1px solid #002B80;border-radius:3px;}</style>
           <span class="kai-padding-5">${definition}</span>
