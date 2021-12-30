@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.3",
   "name": "MDX Dictionary",
   "description": "MDX Dictionary allows you to open MDict dictionary(mdx only) files, and you can easily search the dictionary in the app",
   "launch_path": "/index.html",
